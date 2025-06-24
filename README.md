@@ -7,13 +7,15 @@
 
 > **HanCLIP**: A lightweight and efficient cross-lingual vision-language model for Korean, built on top of CLIP
 
-**HanCLIP**은 대규모 한국어–이미지 쌍 없이도 한국어와 시각 정보 간 의미 정렬을 가능하게 하는 효율적인 비전-언어 모델입니다. 
+HanCLIP은 대규모 한국어–이미지 쌍 없이도 한국어와 시각 정보 간 의미 정렬을 가능하게 하는 효율적인 비전-언어 모델입니다. **영어를 의미적 매개체(semantic pivot)**로 활용하여, 기존 CLIP의 강력한 시각 표현 능력을 유지하면서도 한국어 질의에 대한 이미지 검색 및 분류가 가능합니다.
 
-영어를 의미적 중간 다리(semantic pivot)로 활용하여, 기존 CLIP의 강력한 시각 표현 능력을 유지하면서도 한국어 질의에 대한 이미지 검색 및 분류가 가능합니다.
+기존의 한국어 기반 비전-언어 모델들은 일반적으로 수십만~수백만 규모의 한국어–이미지 페어링 데이터를 필요로 하며, 구축 비용과 시간, 도메인 편향의 한계가 존재했습니다. HanCLIP은 이러한 문제를 해결하기 위해 **기존 CLIP 이미지 인코더와 다국어 텍스트 인코더는 고정(frozen)**한 채, 양질의 영어–이미지 정렬을 중간 매개체로 전이 학습합니다.
+
+HanCLIP은 오직 **경량 projection 모듈(약 2.1B)**만을 학습함으로써, 기존 방식보다 99% 이상 작은 모델로도 경쟁력 있는 성능을 달성하며, 추론 속도 역시 기존 번역 기반 파이프라인 대비 10배 이상 빠릅니다. 따라서 HanCLIP은 한국어 기반 이미지 검색, 분류, 다국어 콘텐츠 탐색 등에 손쉽게 적용할 수 있는 실용적인 솔루션입니다.
 
 ## 방법론
 
-HanCLIP은 이미지–한국어 간 직접적인 정렬 없이, **영어를 의미적 매개체(semantic pivot)**로 활용하여 이미지–한국어 표현 간 **공유 임베딩 공간(shared embedding space)**을 학습하는 구조입니다.
+HanCLIP은 이미지–한국어 간 직접적인 정렬 없이, **영어를 의미적 매개체(semantic pivot)**로 활용하여 이미지–한국어 표현 간 **공유 임베딩 공간(shared embedding space)**을 학습하는 구조를 지닙니다.
 
 ![Overall Architecture](asset/pipeline.png)
 
@@ -43,11 +45,9 @@ HanCLIP은 이미지–한국어 간 직접적인 정렬 없이, **영어를 의
 
 - 이미지 쿼리 및 한국어 쿼리로부터 **pseudo image** *vᵢᴵ*, **pseudo Korean text** *kᵢᴷ* 생성  
 - Softmax-weighted aggregation으로 유사한 메모리에서 표현 보완
-
 ![Cross-modal and Cross-lingual Semantic Enhancement](asset/semantic_enhancement.png)
 
 - 각 임베딩에 **노이즈 추가 및 L2 정규화** 수행:
-
 ![Perturbed Embedding Semantic Enhancement](asset/noise_perturb.png)
 
 ---
@@ -55,16 +55,9 @@ HanCLIP은 이미지–한국어 간 직접적인 정렬 없이, **영어를 의
 ### Inter-alignment Loss
 
 - 4가지 임베딩을 각각 projection head에 통과:
-
-```
-êᵢᴵ = f₁(~eᵢᴵ)  
-êᵢᴷ = f₂(~eᵢᴷ)  
-v̂ᵢᴵ = f₁(~vᵢᴵ)  
-k̂ᵢᴷ = f₂(~kᵢᴷ)
-```
+![embedding projection](asset/embedding_projection.png)
 
 - 두 쌍 (image-text)의 **symmetric contrastive loss** 적용
-
 ![Text-text Inter-alignment Loss](asset/text_inter.png)  
 ![pseudo image-Korean Inter-alignment Loss](asset/pseudo_inter.png)
 
@@ -79,7 +72,6 @@ k̂ᵢᴷ = f₂(~kᵢᴷ)
 
 - **모달리티 간 격차(modality gap)**를 줄이기 위해 attractive term만 사용  
 - 동일 의미의 쌍 간 거리 최소화
-
 ![Intra-alignment Loss](asset/intra.png)
 
 ---
