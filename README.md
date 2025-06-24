@@ -7,6 +7,7 @@
 
 > **HanCLIP**: A lightweight and efficient cross-lingual vision-language model for Korean, built on top of CLIP
 
+
 HanCLIP은 대규모 한국어–이미지 쌍 없이도 한국어와 시각 정보 간 의미 정렬을 가능하게 하는 효율적인 비전-언어 모델입니다. **영어를 의미적 매개체(semantic pivot)**로 활용하여, 기존 CLIP의 강력한 시각 표현 능력을 유지하면서도 한국어 질의에 대한 이미지 검색 및 분류가 가능합니다.
 
 기존의 한국어 기반 비전-언어 모델들은 일반적으로 수십만~수백만 규모의 한국어–이미지 페어링 데이터를 필요로 하며, 구축 비용과 시간, 도메인 편향의 한계가 존재했습니다. HanCLIP은 이러한 문제를 해결하기 위해 **기존 CLIP 이미지 인코더와 다국어 텍스트 인코더는 고정(frozen)**한 채, 양질의 영어–이미지 정렬을 중간 매개체로 전이 학습합니다.
@@ -17,7 +18,7 @@ HanCLIP은 오직 **경량 projection 모듈(약 2.1B)**만을 학습함으로�
 
 HanCLIP은 이미지–한국어 간 직접적인 정렬 없이, **영어를 의미적 매개체(semantic pivot)**로 활용하여 이미지–한국어 표현 간 **공유 임베딩 공간(shared embedding space)**을 학습하는 구조를 지닙니다.
 
-![Overall Architecture](asset/pipeline.png)
+![Overall Architecture](asset/overall_architecture.png)
 
 ### Architecture Components
 
