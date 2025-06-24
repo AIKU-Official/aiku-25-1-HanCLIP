@@ -15,9 +15,7 @@ HanCLIP은 대규모 한국어–이미지 쌍 없이도 한국어와 시각 정
 HanCLIP은 오직 **경량 projection 모듈(약 2.1B)**만을 학습함으로써, 기존 방식보다 99% 이상 작은 모델로도 경쟁력 있는 성능을 달성하며, 추론 속도 역시 기존 번역 기반 파이프라인 대비 10배 이상 빠릅니다. 따라서 HanCLIP은 한국어 기반 이미지 검색, 분류, 다국어 콘텐츠 탐색 등에 손쉽게 적용할 수 있는 실용적인 솔루션입니다.
 
 </br>아래는 프로젝트 paper pdf 파일입니다. (클릭 시 열람 가능)
-<a href="asset/hanclip_paper.pdf" target="_blank">
-  <img src="asset/paper_img.png" alt="paper preview" width="400"/>
-</a>
+[![image-클릭 시 이동](asset/paper_img.png)](asset/Team6.pdf)
 
 </br>프로젝트 관련 더 자세한 사항은 [AIKU 노션](https://aiku.notion.site/HanCLIP-215a7930e09c8092a975d6c37cb7eb7a?source=copy_link)에서 확인하실 수 있습니다.
 
