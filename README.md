@@ -1,11 +1,15 @@
 # 프로젝트명
 
-📢 20##년 1/여름/2/겨울학기 [AIKU](https://github.com/AIKU-Official) 활동으로 진행한 프로젝트입니다
+📢 2025년 1학기 [AIKU](https://github.com/AIKU-Official) 활동으로 진행한 프로젝트입니다
 🎉 20##년 1/여름/2/겨울학기 AIKU Conference 열심히상 수상!
 
 ## 소개
 
-(프로젝트를 소개해주세요)
+> **HanCLIP**: A lightweight and efficient cross-lingual vision-language model for Korean, built on top of CLIP
+
+**HanCLIP**은 대규모 한국어–이미지 쌍 없이도 한국어와 시각 정보 간 의미 정렬을 가능하게 하는 효율적인 비전-언어 모델입니다. 
+
+영어를 의미적 중간 다리(semantic pivot)로 활용하여, 기존 CLIP의 강력한 시각 표현 능력을 유지하면서도 한국어 질의에 대한 이미지 검색 및 분류가 가능합니다.
 
 ## 방법론
 
@@ -13,7 +17,9 @@
 
 ## 환경 설정
 
-(Requirements, Anaconda, Docker 등 프로젝트를 사용하는데에 필요한 요구 사항을 나열해주세요)
+```
+  conda activate cmcr
+```
 
 ## 사용 방법
 
@@ -25,6 +31,7 @@
 
 ## 팀원
 
-(프로젝트에 참여한 팀원의 이름과 깃헙 프로필 링크, 역할을 작성해주세요)
-
-- [홍길동](홍길동의 github link): (수행한 역할을 나열)
+- [신동현](https://github.com/Donghyun1228):
+- [문승기](https://github.com/moon44432):
+- [성유진](https://github.com/dinyudin203): (수행한 역할을 나열)
+- [정다현](https://github.com/dhyun22):

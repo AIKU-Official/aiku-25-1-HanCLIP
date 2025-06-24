@@ -1,0 +1,6 @@
+[submodule "KNN_CUDA"]
+	path = KNN_CUDA
+	url = https://github.com/unlimblue/KNN_CUDA
+[submodule "Multilingual_CLIP"]
+	path = Multilingual_CLIP
+	url = https://github.com/FreddeFrallan/Multilingual-CLIP
