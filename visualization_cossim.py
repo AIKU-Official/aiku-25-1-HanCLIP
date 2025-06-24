@@ -155,7 +155,7 @@ with torch.no_grad():
         ax.tick_params(axis='y', labelsize=70)
 
         plt.tight_layout()
-        plt.savefig(f"{save_dir}cosine_similarity_{title}.png")
+        plt.savefig(f"{save_dir}/cosine_similarity_{title}.png")
         plt.close()
 
 
