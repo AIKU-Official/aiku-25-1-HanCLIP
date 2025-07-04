@@ -2,16 +2,20 @@
 import argparse
 import torch
 import json
+import os
+from sentence_transformers import SentenceTransformer
 from transformers import CLIPProcessor, CLIPModel, AutoTokenizer, AutoModel
 from PIL import Image
 from tqdm import tqdm
 import torch.nn.functional as F
 from concurrent.futures import ProcessPoolExecutor
+from config import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--source_path", type=str, help="이미지는 폴더 경로(쉼표로 다중 지정 가능), 텍스트는 파일 경로", default=None)
 parser.add_argument("--type", type=str, choices=["image", "korean"], default=None)
 parser.add_argument("--model", type=str, default=None)
+parser.add_argument("--batch_size", type=int, default=16, help="배치 크기 (기본값: 16)")
 args = parser.parse_args()
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -30,18 +34,19 @@ def load_image(fpath):
         return None
 
 @torch.no_grad()
-def get_vision_feature(source_paths, batch_size=16):
+# TODO: refactor get_vision_feature
+def get_vision_feature():
     print(f"🔍 모델 로딩 중...")
     model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32").to(device)
     processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
     image_features = []
 
-    if isinstance(source_paths, str):
-        source_paths = [p.strip() for p in source_paths.split(",")]
+    if isinstance(args.source_path, str):
+        args.source_path = [p.strip() for p in args.source_path.split(",")]
 
     all_files = []
-    for path in source_paths:
+    for path in args.source_path:
         print(f"📂 탐색 중: {path}")
         if not os.path.exists(path):
             print(f"❌ 경로가 존재하지 않습니다: {path}")
@@ -66,8 +71,8 @@ def get_vision_feature(source_paths, batch_size=16):
     print(f"✅ 로딩된 이미지 개수: {len(all_images)}")
 
     
-    for i in tqdm(range(0, len(all_images), batch_size), desc="📊 이미지 임베딩 중 (GPU 사용 중)"):
-        batch = all_images[i:i + batch_size]
+    for i in tqdm(range(0, len(all_images), args.batch_size), desc="📊 이미지 임베딩 중 (GPU 사용 중)"):
+        batch = all_images[i:i + args.batch_size]
         inputs = processor(images=batch, return_tensors="pt", padding=True).to(device)
         features = model.get_image_features(**inputs)
         features = F.normalize(features, dim=-1)
@@ -78,18 +83,19 @@ def get_vision_feature(source_paths, batch_size=16):
     return image_embeddings
 
 @torch.no_grad()
-def get_korean_feature(model, source_path, batch_size=16):
+def get_korean_feature():
     print(f"🔍 모델 로딩 중...")
-    tokenizer = AutoTokenizer.from_pretrained('xlm-roberta-base')
-    encoder = AutoModel.from_pretrained('xlm-roberta-base').to(device)
-    encoder.eval()
+    if args.model == "e5":
+        model = SentenceTransformer(E5_MODEL_PATH).to(device)
+    elif args.model == "minilm":
+        model = SentenceTransformer(MINILM_MODEL_PATH).to(device)
     
-    print(f"📂 JSON 파일 탐색 중: {source_path}")
+    print(f"📂 JSON 파일 탐색 중: {args.source_path}")
     
     all_captions = []
 
 
-    with open(source_path, "r", encoding="utf-8") as f:
+    with open(args.source_path, "r", encoding="utf-8") as f:
         data = json.load(f)   # <== 여기서 전체를 로딩합니다.
 
     # 각 항목에서 caption_ko를 추출합니다.
@@ -100,7 +106,7 @@ def get_korean_feature(model, source_path, batch_size=16):
 
     print(all_captions[:10])  # 로딩된 캡션의 일부를 출력합니다.
 
-    if model == "e5":
+    if args.model == "e5":
         all_captions = ["query: " + caption for caption in all_captions]
 
     print(f"✅ 로딩된 캡션 개수: {len(all_captions)}")
@@ -110,29 +116,23 @@ def get_korean_feature(model, source_path, batch_size=16):
 
     # ======= 임베딩 추출 =======
     print(f"🚀 텍스트 임베딩 추출 중...")
-    all_embeddings = []
+    all_embeddings = None
 
-    for i in tqdm(range(0, len(all_captions), batch_size), desc="📊 텍스트 임베딩 중"):
-        batch = all_captions[i:i + batch_size]
-        inputs = tokenizer(batch, return_tensors="pt", padding=True, truncation=True).to(device)
-        outputs = encoder(**inputs)
-        pooled = mean_pooling(outputs, inputs['attention_mask'])
-        if args.model == "xlmr":
-            all_embeddings.append(pooled.cpu())
-        else:
-            all_embeddings.append(F.normalize(pooled, dim=-1).cpu())
+    for i in tqdm(range(0, len(all_captions), args.batch_size), desc="📊 텍스트 임베딩 중"):
+        batch = all_captions[i:i + args.batch_size]
+        outputs = model.encode(batch, device=device, convert_to_tensor=True, normalize_embeddings=True)
+        all_embeddings = torch.cat([all_embeddings, outputs]) if all_embeddings is not None else outputs
 
-    text_embeddings = torch.cat(all_embeddings, dim=0)
-    print(f'🔍 임베딩 완료 - Original Text Count: {len(all_captions)}, Embedding Size: {text_embeddings.size()}')
-    return text_embeddings
+    print(f'🔍 임베딩 완료 - Original Text Count: {len(all_captions)}, Embedding Size: {all_embeddings.size()}, Embedding Length: {torch.norm(all_embeddings[0], p=2)}')
+    return all_embeddings
 # ======= Main Execution =======
 if args.type == "image":
-    image_embedding = get_vision_feature(args.source_path)
+    image_embedding = get_vision_feature()
     if image_embedding is not None:
         torch.save(image_embedding, "image_embedding.pt")
         print("✅ 이미지 임베딩 저장 완료: image_embedding.pt")
 elif args.type == "korean":
-    text_embedding = get_korean_feature("minilm", args.source_path)
+    text_embedding = get_korean_feature()
     if text_embedding is not None:
         torch.save(text_embedding, "text_embedding.pt")
         print("✅ 텍스트 임베딩 저장 완료: text_embedding.pt")
