@@ -76,7 +76,7 @@ def get_vision_feature():
         inputs = processor(images=batch, return_tensors="pt", padding=True).to(device)
         features = model.get_image_features(**inputs)
         features = F.normalize(features, dim=-1)
-        image_features.append(features.cpu())
+        image_features.append(features)
     
     image_embeddings = torch.cat(image_features, dim=0)
     print(f'🔍 임베딩 완료 - Original Image Count: {len(all_images)}, Embedding Size: {image_embeddings.size()}')
@@ -116,13 +116,14 @@ def get_korean_feature():
 
     # ======= 임베딩 추출 =======
     print(f"🚀 텍스트 임베딩 추출 중...")
-    all_embeddings = None
+    all_embeddings = []
 
     for i in tqdm(range(0, len(all_captions), args.batch_size), desc="📊 텍스트 임베딩 중"):
         batch = all_captions[i:i + args.batch_size]
         outputs = model.encode(batch, device=device, convert_to_tensor=True, normalize_embeddings=True)
-        all_embeddings = torch.cat([all_embeddings, outputs]) if all_embeddings is not None else outputs
+        all_embeddings.append(outputs)
 
+    all_embeddings = torch.cat(all_embeddings, dim=0)
     print(f'🔍 임베딩 완료 - Original Text Count: {len(all_captions)}, Embedding Size: {all_embeddings.size()}, Embedding Length: {torch.norm(all_embeddings[0], p=2)}')
     return all_embeddings
 # ======= Main Execution =======
